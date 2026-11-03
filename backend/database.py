@@ -148,7 +148,7 @@ class Database:
                 if not rows:
                     return []
                 cols = [d[0] for d in cur.description]
-                return [dict(zip(cols, row)) for row in rows]
+                return [dict(zip(cols, row, strict=False)) for row in rows]
             finally:
                 cur.close()
 

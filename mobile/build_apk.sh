@@ -37,7 +37,9 @@ fi
 if [ ! -f "gradlew" ]; then
     if command -v gradle &>/dev/null; then
         echo "🔧 Genererer gradle wrapper..."
-        gradle wrapper --gradle-version 8.2
+        # Ma matche AGP-versjonen i build.gradle (8.2.2). Gradle 9 fjernet
+        # lazy config-mutasjon som AGP 8.2 bruker, sa vi holder oss pa 8.x.
+        gradle wrapper --gradle-version 8.7
     else
         echo "📥 Laster ned gradle wrapper..."
         curl -fsSL https://raw.githubusercontent.com/nicokaiser/gradle-wrapper/master/gradlew -o gradlew || true

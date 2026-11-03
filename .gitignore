@@ -65,3 +65,9 @@ backend/data/
 Thumbs.db
 *.log
 
+
+# ------------------------------------------------------------------
+# Dependencies (JS) og runtime-state
+# ------------------------------------------------------------------
+node_modules/
+backend/.agent_state.json

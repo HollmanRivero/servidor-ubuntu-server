@@ -601,6 +601,55 @@ def health():
     }
 
 
+# GPU-tall hentes fra nvidia-smi. Kallet tar 50-150 ms, saa vi cacher i 2 sekunder
+# slik at appen kan polle /stats hvert 3. sekund uten aa belaste maskinen.
+_GPU_CACHE: dict = {"t": 0.0, "data": None}
+
+
+def _gpu_stats() -> dict:
+    """Beste forsøk paa GPU-status. Returnerer alltid et objekt, ogsaa uten GPU."""
+    now = time.monotonic()
+    if _GPU_CACHE["data"] is not None and now - float(_GPU_CACHE["t"]) < 2.0:
+        return _GPU_CACHE["data"]
+
+    info = {
+        "available": False,
+        "name": "",
+        "util_percent": 0.0,
+        "mem_used_mb": 0.0,
+        "mem_total_mb": 0.0,
+        "temp_c": 0.0,
+    }
+    if shutil.which("nvidia-smi"):
+        try:
+            out = subprocess.run(
+                [
+                    "nvidia-smi",
+                    "--query-gpu=name,utilization.gpu,memory.used,memory.total,temperature.gpu",
+                    "--format=csv,noheader,nounits",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=2,
+            )
+            first = (out.stdout or "").strip().splitlines()[:1]
+            if out.returncode == 0 and first:
+                name, util, used, total, temp = [p.strip() for p in first[0].split(",")]
+                info.update(
+                    available=True,
+                    name=name,
+                    util_percent=float(util or 0),
+                    mem_used_mb=float(used or 0),
+                    mem_total_mb=float(total or 0),
+                    temp_c=float(temp or 0),
+                )
+        except Exception as e:
+            logger.debug("nvidia-smi feilet: {}", e)
+
+    _GPU_CACHE.update(t=now, data=info)
+    return info
+
+
 @app.get("/stats")
 def get_system_stats():
     memory_info = psutil.virtual_memory()
@@ -630,6 +679,7 @@ def get_system_stats():
         "disk_total_gb": disk_info.total // (1024**3),
         "disk_percent": disk_info.percent,
         "temp_c": temp_c,
+        "gpu": _gpu_stats(),
     }
 
 
