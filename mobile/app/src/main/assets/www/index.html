@@ -172,11 +172,13 @@
     }
     .chat-selector {
       display: flex;
+      flex-wrap: wrap;
       gap: 8px;
       margin-bottom: 12px;
     }
     .agent-chip {
       flex: 1;
+      min-width: 74px;
       padding: 8px;
       background: #1e293b;
       border: 1px solid var(--card-border);
@@ -301,9 +303,222 @@
     .nav-icon {
       font-size: 1.3rem;
     }
+
+    /* Skjermer */
+    #app-view {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    .hidden {
+      display: none !important;
+    }
+
+    /* Login / velkomst */
+    .login-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-y: auto;
+      background: radial-gradient(circle at 50% 0%, #1e293b 0%, var(--bg) 60%);
+    }
+    .login-box {
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+    }
+    .login-logo {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 14px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35);
+    }
+    .login-box h1 {
+      font-size: 1.4rem;
+      margin-bottom: 4px;
+    }
+    .login-sub {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 22px;
+    }
+    .login-box input {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    .login-box button {
+      width: 100%;
+    }
+    .login-alt {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 14px;
+    }
+    .login-alt a {
+      color: var(--primary);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .login-error {
+      margin-top: 14px;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
+    .login-error.ok {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: rgba(16, 185, 129, 0.4);
+      color: #6ee7b7;
+    }
+    .login-server-info {
+      margin-top: 12px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      word-break: break-all;
+    }
+    .login-advanced {
+      margin-top: 22px;
+      text-align: left;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .login-advanced summary {
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    /* Modusvelger i chatten */
+    .mode-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .mode-btn {
+      flex: 1;
+      padding: 7px;
+      border-radius: 9px;
+      border: 1px solid var(--card-border);
+      background: #16203a;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .mode-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    /* Agent-steg */
+    .step {
+      border-left: 3px solid var(--primary);
+      padding: 6px 10px;
+      margin-bottom: 8px;
+      background: #121a2c;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.73rem;
+      color: var(--text-muted);
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+    .step b {
+      color: var(--text);
+    }
+    .step.fail {
+      border-left-color: var(--accent-danger);
+    }
+    .step.ok {
+      border-left-color: var(--accent);
+    }
   </style>
 </head>
 <body>
+
+  <script>
+    // Vakt: viser JS-feil på innloggingsskjermen i stedet for at knappen bare "ikke gjør noe".
+    (function () {
+      if (window.NodeList && !window.NodeList.prototype.forEach) {
+        window.NodeList.prototype.forEach = Array.prototype.forEach;
+      }
+      function vis(melding) {
+        var box = document.getElementById("loginError");
+        if (!box) return;
+        box.className = "login-error";
+        box.textContent = melding;
+      }
+      window.onerror = function (msg, src, line) {
+        vis("Appfeil: " + msg + (line ? " (linje " + line + ")" : ""));
+        return false;
+      };
+      window.addEventListener("load", function () {
+        setTimeout(function () {
+          if (typeof window.doLogin !== "function") {
+            vis("Appen klarte ikke å starte skriptet. Oppdater «Android System WebView» i Play Store og start appen på nytt.");
+          }
+        }, 1500);
+      });
+    })();
+  </script>
+
+  <!-- VELKOMST / INNLOGGING -->
+  <div id="screen-login" class="login-screen">
+    <div class="login-box">
+      <div class="login-logo">⚡</div>
+      <h1>Super-Server</h1>
+      <p class="login-sub">Logg inn for å styre serveren</p>
+
+      <div id="loginForm">
+        <input type="text" id="loginUser" placeholder="Brukernavn" autocomplete="username">
+        <input type="password" id="loginPass" placeholder="Passord" autocomplete="current-password">
+        <button onclick="doLogin()">Logg inn</button>
+        <p class="login-alt">Ny bruker? <a href="#" onclick="toggleAuth('register');return false;">Registrer deg</a></p>
+        <p class="login-alt"><a href="#" onclick="toggleAuth('reset');return false;">Glemt passord?</a></p>
+      </div>
+
+      <div id="resetForm" class="hidden">
+        <input type="text" id="resetUser" placeholder="Brukernavn" autocomplete="username">
+        <input type="text" id="resetCode" placeholder="Engangskode fra admin">
+        <input type="password" id="resetPass" placeholder="Nytt passord (minst 4 tegn)" autocomplete="new-password">
+        <button onclick="doResetPassword()">Sett nytt passord</button>
+        <p class="login-alt"><a href="#" onclick="toggleAuth('login');return false;">Tilbake til innlogging</a></p>
+      </div>
+
+      <div id="registerForm" class="hidden">
+        <input type="text" id="regUser" placeholder="Nytt brukernavn" autocomplete="username">
+        <input type="password" id="regPass" placeholder="Passord (minst 4 tegn)" autocomplete="new-password">
+        <input type="password" id="regPass2" placeholder="Gjenta passord" autocomplete="new-password">
+        <button onclick="doRegister()">Opprett bruker</button>
+        <p class="login-alt">Har du bruker? <a href="#" onclick="toggleAuth('login');return false;">Logg inn</a></p>
+      </div>
+
+      <p id="loginError" class="login-error hidden"></p>
+      <p id="loginServerInfo" class="login-server-info"></p>
+
+      <details class="login-advanced">
+        <summary>Server og API-token</summary>
+        <input type="text" id="loginServerUrl" placeholder="Server URL">
+        <input type="password" id="loginApiToken" placeholder="X-API-Token (valgfritt)">
+        <button onclick="saveServerUrl()">Lagre og test server-URL</button>
+        <button onclick="useApiToken()">Bruk API-token</button>
+      </details>
+    </div>
+  </div>
+
+  <div id="app-view" class="hidden">
 
   <!-- Header -->
   <header>
@@ -347,6 +562,14 @@
             <div class="stat-val" id="tempVal">--°C</div>
             <div class="progress-bar"><div class="progress-fill" id="tempBar"></div></div>
           </div>
+          <div class="stat-box">
+            <div class="stat-label">GPU BRUK</div>
+            <div class="stat-val" id="gpuVal">--%</div>
+            <div class="progress-bar"><div class="progress-fill" id="gpuBar"></div></div>
+          </div>
+        </div>
+        <div style="font-size:0.72rem; color:var(--text-muted); margin-top:10px;">
+          <span id="gpuName">GPU: --</span> · VRAM <b id="gpuMem">--</b> · <b id="gpuTemp">--</b>
         </div>
       </div>
 
@@ -356,7 +579,7 @@
           <div>📡 Tailscale: <b id="tailscaleStatus" style="color:var(--accent);">Aktiv</b></div>
           <div>✨ Gemini API: <b id="geminiStatus">--</b></div>
           <div>🧠 DeepSeek API: <b id="deepseekStatus">--</b></div>
-          <div>🤖 Tech-AI API: <b id="techaiStatus">--</b></div>
+          <div>🧪 Tech-AI: <b id="techaiStatus">--</b></div>
           <div>💻 Shell-tilgang: <b id="shellStatus">--</b></div>
         </div>
       </div>
@@ -371,6 +594,12 @@
           <div class="agent-chip" onclick="setAgent('techai', this)">Tech-AI</div>
           <div class="agent-chip" onclick="setAgent('collaborate', this)">Samarbeid</div>
         </div>
+        <div class="mode-bar">
+          <button class="mode-btn active" onclick="setMode('chat', this)">💬 Chat</button>
+          <button class="mode-btn" onclick="setMode('plan', this)">🧠 Plan</button>
+          <button class="mode-btn" onclick="setMode('execute', this)">🛠 Utfør</button>
+        </div>
+        <input type="text" id="chatProject" class="hidden" placeholder="Prosjektmappe for agenten (f.eks. demo)" style="width:100%; margin-bottom:8px;">
         <div class="chat-messages" id="chatMessages">
           <div class="message bot">Hei! Spør meg om hva som helst på serveren din.</div>
         </div>
@@ -384,17 +613,32 @@
     <!-- TAB 3: AGENT & SHELL -->
     <section id="tab-agent" class="tab-content">
       <div class="card">
-        <div class="card-title">Autonom Kodeagent</div>
+        <div class="card-title">Autonom agent (skrivetilgang)</div>
         <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">
-          Gi et mål til agenten, så planlegger og koder den direkte på serveren.
+          Agenten planlegger selv, kjører kommandoer og skriver filer på serveren.
         </p>
         <input type="text" id="agentGoal" placeholder="F.eks: Lag en enkel html-side i prosjektet 'demo'" style="width:100%; margin-bottom:8px;">
-        <button onclick="runAgent()" style="width:100%;">Kjør Agent</button>
+        <input type="text" id="agentProject" placeholder="Prosjektmappe (valgfritt)" style="width:100%; margin-bottom:8px;">
+        <div class="chat-selector" style="margin-bottom:10px;">
+          <div class="agent-chip active" onclick="setAgentPrimary('gemini', this)">Gemini</div>
+          <div class="agent-chip" onclick="setAgentPrimary('deepseek', this)">DeepSeek</div>
+          <div class="agent-chip" onclick="setAgentPrimary('techai', this)">Tech-AI</div>
+        </div>
+        <button onclick="runAgent()" style="width:100%;">Kjør agent</button>
       </div>
 
       <div class="card">
-        <div class="card-title">Terminal Output</div>
-        <div class="terminal-box" id="terminalOutput">Klar for kjøring...</div>
+        <div class="card-title">
+          <span>Status</span>
+          <span style="font-size:0.75rem; color:var(--text-muted);" id="agentState">inaktiv</span>
+        </div>
+        <div id="agentSteps" style="max-height:320px; overflow-y:auto;">
+          <div class="step">Ingen kjøring ennå.</div>
+        </div>
+        <div class="chat-input-bar" style="margin-top:10px;">
+          <input type="text" id="agentMessage" placeholder="Korriger agenten mens den jobber..." onkeydown="if(event.key==='Enter') sendAgentMessage()">
+          <button onclick="sendAgentMessage()">Send</button>
+        </div>
       </div>
     </section>
 
@@ -414,12 +658,52 @@
       </div>
 
       <div class="card">
+        <div class="card-title">Konto</div>
+        <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">
+          Innlogget som <b id="settingsUser" style="color:var(--text);">–</b>
+          <span id="settingsRole"></span>
+        </div>
+        <button onclick="logout()" style="width:100%; background:var(--accent-danger);">Logg ut</button>
+      </div>
+
+
+      <div class="card">
         <div class="card-title">Om Appen</div>
         <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.6;">
-          Super-Server Mobile Controller v1.0.0<br>
+          Super-Server Mobile Controller v1.2.2<br>
           Tailscale-profil: <b>hesriverp7-server</b><br>
           Tilkoblet vert: <code>100.115.248.101:8000</code> / <code>http://hesriverp7-server:8000</code>
         </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: TERMINAL -->
+    <section id="tab-terminal" class="tab-content">
+      <div class="card">
+        <div class="card-title">Terminal (skrivetilgang)</div>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">
+          Kommandoene kjøres på serveren med samme rettigheter som agenten.
+        </p>
+        <input type="text" id="termCwd" placeholder="Arbeidsmappe (valgfritt)" style="width:100%; margin-bottom:8px;">
+        <div class="chat-selector" style="margin-bottom:10px;">
+          <div class="agent-chip" onclick="quickCmd('df -h')">df -h</div>
+          <div class="agent-chip" onclick="quickCmd('free -h')">free -h</div>
+          <div class="agent-chip" onclick="quickCmd('ps aux --sort=-%cpu | head')">topp CPU</div>
+          <div class="agent-chip" onclick="quickCmd('nvidia-smi')">nvidia-smi</div>
+          <div class="agent-chip" onclick="quickCmd('systemctl status servidor-super --no-pager')">server</div>
+        </div>
+        <div class="chat-input-bar">
+          <input type="text" id="termCommand" placeholder="f.eks. df -h" onkeydown="if(event.key==='Enter') runTerminal()">
+          <button onclick="runTerminal()">Kjør</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>Utdata</span>
+          <span style="font-size:0.75rem; cursor:pointer; color:var(--primary);" onclick="clearTerminal()">tøm</span>
+        </div>
+        <div class="terminal-box" id="terminalOutput" style="max-height:340px; overflow-y:auto;">Klar. Skriv en kommando over.</div>
       </div>
     </section>
   </main>
@@ -438,227 +722,598 @@
       <div class="nav-icon">🤖</div>
       <span>Agent</span>
     </div>
+    <div class="nav-item" onclick="switchTab('terminal', this)">
+      <div class="nav-icon">⌨️</div>
+      <span>Terminal</span>
+    </div>
     <div class="nav-item" onclick="switchTab('settings', this)">
       <div class="nav-icon">⚙️</div>
       <span>Oppsett</span>
     </div>
   </nav>
 
+  </div><!-- /app-view -->
+
   <script>
-    let serverUrl = localStorage.getItem("serverUrl") || "http://100.115.248.101:8000";
-    let apiToken = localStorage.getItem("apiToken") || "servidor123";
-    let currentAgent = "gemini";
-    let statsInterval = null;
+    // ---------- Lagring (trygg også hvis WebView nekter localStorage på file://) ----------
+    var memoryStore = {};
 
-    document.getElementById("serverUrlInput").value = serverUrl;
-    document.getElementById("apiTokenInput").value = apiToken;
-
-    function saveSettings() {
-      serverUrl = document.getElementById("serverUrlInput").value.trim().replace(/\/+$/, "");
-      apiToken = document.getElementById("apiTokenInput").value.trim();
-      localStorage.setItem("serverUrl", serverUrl);
-      localStorage.setItem("apiToken", apiToken);
-      checkStatus();
-      alert("Innstillinger lagret!");
-    }
-
-    function switchTab(tabId, el) {
-      document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
-      document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
-      document.getElementById("tab-" + tabId).classList.add("active");
-      el.classList.add("active");
-    }
-
-    function setAgent(agent, el) {
-      currentAgent = agent;
-      document.querySelectorAll(".agent-chip").forEach(c => c.classList.remove("active"));
-      el.classList.add("active");
-    }
-
-    async function apiFetch(endpoint, options = {}) {
-      const url = `${serverUrl}${endpoint}`;
-      const headers = {
-        "Content-Type": "application/json",
-        ...(apiToken ? { "X-API-Token": apiToken } : {}),
-        ...(options.headers || {})
-      };
-      return fetch(url, { ...options, headers });
-    }
-
-    async function checkStatus() {
-      const dot = document.getElementById("statusDot");
-      const text = document.getElementById("statusText");
+    function storageGet(key) {
       try {
-        const res = await apiFetch("/health");
-        if (res.ok) {
-          const data = await res.json();
-          dot.classList.add("online");
-          text.textContent = "Online (Tailscale)";
-          document.getElementById("geminiStatus").textContent = data.gemini_key_configured ? "Aktiv" : "Mangler nøkkel";
-          document.getElementById("geminiStatus").style.color = data.gemini_key_configured ? "var(--accent)" : "var(--accent-warn)";
-          document.getElementById("deepseekStatus").textContent = data.deepseek_key_configured ? "Aktiv" : "Mangler nøkkel";
-          document.getElementById("deepseekStatus").style.color = data.deepseek_key_configured ? "var(--accent)" : "var(--accent-warn)";
-          if (document.getElementById("techaiStatus")) {
-            document.getElementById("techaiStatus").textContent = data.techai_key_configured ? "Aktiv" : "Mangler nøkkel";
-            document.getElementById("techaiStatus").style.color = data.techai_key_configured ? "var(--accent)" : "var(--accent-warn)";
-          }
-          document.getElementById("shellStatus").textContent = data.agent_shell_enabled ? "Aktiv" : "Avslått";
-          return true;
-        }
+        var value = window.localStorage.getItem(key);
+        return value === null ? (memoryStore[key] || "") : value;
       } catch (e) {
-        console.error(e);
-      }
-      dot.classList.remove("online");
-      text.textContent = "Frakoblet";
-      return false;
-    }
-
-    async function fetchStats() {
-      try {
-        const res = await apiFetch("/stats");
-        if (res.ok) {
-          const stats = await res.json();
-          const cpu = Math.round(stats.cpu_percent || 0);
-          const ram = Math.round(stats.ram_percent || 0);
-          const disk = Math.round(stats.disk_percent || 0);
-          const temp = Math.round(stats.temp_c || 0);
-
-          document.getElementById("cpuVal").textContent = cpu + "%";
-          document.getElementById("cpuBar").style.width = cpu + "%";
-          document.getElementById("ramVal").textContent = ram + "%";
-          document.getElementById("ramBar").style.width = ram + "%";
-          document.getElementById("diskVal").textContent = disk + "%";
-          document.getElementById("diskBar").style.width = disk + "%";
-          document.getElementById("tempVal").textContent = (temp > 0 ? temp : "--") + "°C";
-          document.getElementById("tempBar").style.width = Math.min(100, (temp / 80) * 100) + "%";
-        }
-      } catch (e) {
-        // silent on stats failure
+        return memoryStore[key] || "";
       }
     }
 
-    async function sendMessage() {
-      const input = document.getElementById("chatInput");
-      const msg = input.value.trim();
-      if (!msg) return;
+    function storageSet(key, value) {
+      memoryStore[key] = value;
+      try { window.localStorage.setItem(key, value); } catch (e) { /* ignorer */ }
+    }
 
-      appendMessage(msg, "user");
-      input.value = "";
+    function storageRemove(key) {
+      delete memoryStore[key];
+      try { window.localStorage.removeItem(key); } catch (e) { /* ignorer */ }
+    }
 
-      let endpoint = "/chat/gemini";
-      let body = { message: msg };
-      if (currentAgent === "deepseek") {
-        endpoint = "/chat/deepseek";
-      } else if (currentAgent === "techai") {
-        endpoint = "/chat/techai";
-      } else if (currentAgent === "collaborate") {
-        endpoint = "/chat/collaborate";
-        body = { message: msg, primary: "gemini" };
-      }
+    // ---------- Tilstand ----------
+    var serverUrl = storageGet("serverUrl") || "http://100.115.248.101:8000";
+    var apiToken = storageGet("apiToken");
+    var jwt = storageGet("jwt");
+    var currentUser = null;
+    try { currentUser = JSON.parse(storageGet("user") || "null"); } catch (e) { currentUser = null; }
 
-      const botMsgDiv = appendMessage("Tenker...", "bot");
-      try {
-        const res = await apiFetch(endpoint, {
-          method: "POST",
-          body: JSON.stringify(body)
+    var currentAgent = "gemini";   // hvem som svarer i chatten
+    var agentPrimary = "gemini";   // hvem som styrer agent-kjoringen
+    var chatMode = "chat";         // chat | plan | execute
+    var statsInterval = null;
+    var agentPoll = null;
+    var termHistory = [];
+    var termIndex = -1;
+
+    function el(id) { return document.getElementById(id); }
+
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+      });
+    }
+
+    // ---------- Skjermbytte ----------
+    function showLoginError(msg, ok) {
+      var box = el("loginError");
+      if (!msg) { box.classList.add("hidden"); box.classList.remove("ok"); return; }
+      box.textContent = msg;
+      box.classList.remove("hidden");
+      if (ok) box.classList.add("ok");
+      else box.classList.remove("ok");
+    }
+
+    function showLogin(msg, ok) {
+      stopStats();
+      el("screen-login").style.display = "flex";
+      el("app-view").classList.add("hidden");
+      el("loginServerUrl").value = serverUrl;
+      el("loginApiToken").value = apiToken;
+      el("loginServerInfo").textContent = "Server: " + serverUrl;
+      showLoginError(msg || "", ok);
+    }
+
+    function showApp() {
+      el("screen-login").style.display = "none";
+      el("app-view").classList.remove("hidden");
+      el("serverUrlInput").value = serverUrl;
+      el("apiTokenInput").value = apiToken;
+      var name = currentUser ? currentUser.username : (jwt ? "bruker" : "API-token");
+      el("settingsUser").textContent = name;
+      el("settingsRole").textContent = currentUser && currentUser.role ? " (" + currentUser.role + ")" : "";
+      showLoginError("");
+      startStats();
+    }
+
+    function toggleAuth(which) {
+      showLoginError("");
+      ["loginForm", "registerForm", "resetForm"].forEach(function (f) {
+        el(f).classList.add("hidden");
+      });
+      if (which === "register") el("registerForm").classList.remove("hidden");
+      else if (which === "reset") {
+        el("resetForm").classList.remove("hidden");
+        el("resetUser").value = el("loginUser").value.trim();
+      } else el("loginForm").classList.remove("hidden");
+    }
+
+    // ---------- HTTP ----------
+    function apiFetch(endpoint, options) {
+      options = options || {};
+      var headers = Object.assign(
+        { "Content-Type": "application/json" },
+        jwt ? { "Authorization": "Bearer " + jwt } : {},
+        (!jwt && apiToken) ? { "X-API-Token": apiToken } : {},
+        options.headers || {}
+      );
+      return fetch(serverUrl + endpoint, Object.assign({}, options, { headers: headers }))
+        .catch(function () {
+          throw new Error("Får ikke kontakt med " + serverUrl);
+        })
+        .then(function (res) {
+          if (res.status !== 401) return res;
+          return res.clone().json()
+            .catch(function () { return {}; })
+            .then(function (body) {
+              logout();
+              throw new Error(body.detail || "Ikke innlogget");
+            });
         });
-        const data = await res.json();
-        if (currentAgent === "collaborate") {
-          const prim = data.primary?.reply || "";
-          const rev = data.review?.reply || "";
-          botMsgDiv.innerHTML = `<b>Gemini:</b> ${prim}<br><br><small><b>Kontroll av DeepSeek (${data.review?.verdict || ''}):</b><br>${rev}</small>`;
-        } else {
-          botMsgDiv.textContent = data.reply || data.detail || "Ingen respons";
-        }
-      } catch (e) {
-        botMsgDiv.textContent = "Feil under sending: " + e.message;
-      }
     }
 
+    // ---------- Innlogging ----------
+    function doLogin() {
+      var username = el("loginUser").value.trim();
+      var password = el("loginPass").value;
+      if (!username || !password) { showLoginError("Fyll inn brukernavn og passord."); return; }
+      showLoginError("");
+      return fetch(serverUrl + "/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username, password: password })
+      }).then(function (res) {
+        return res.json().then(function (data) {
+          if (!res.ok) { showLoginError(data.detail || "Innlogging feilet."); return; }
+          jwt = data.token || "";
+          currentUser = data.user || { username: username };
+          storageSet("jwt", jwt);
+          storageSet("user", JSON.stringify(currentUser));
+          el("loginPass").value = "";
+          showApp();
+        });
+      }).catch(function (e) {
+        showLoginError("Får ikke kontakt med serveren: " + e.message);
+      });
+    }
+
+    function doRegister() {
+      var username = el("regUser").value.trim();
+      var p1 = el("regPass").value;
+      var p2 = el("regPass2").value;
+      if (!username || p1.length < 4) { showLoginError("Brukernavn påkrevd og passord minst 4 tegn."); return; }
+      if (p1 !== p2) { showLoginError("Passordene er ikke like."); return; }
+      showLoginError("");
+      return fetch(serverUrl + "/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username, password: p1 })
+      }).then(function (res) {
+        return res.json().then(function (data) {
+          if (!res.ok) { showLoginError(data.detail || "Registrering feilet."); return; }
+          el("loginUser").value = username;
+          el("loginPass").value = p1;
+          toggleAuth("login");
+          return doLogin();
+        });
+      }).catch(function (e) {
+        showLoginError("Får ikke kontakt med serveren: " + e.message);
+      });
+    }
+
+    function doResetPassword() {
+      var username = el("resetUser").value.trim();
+      var code = el("resetCode").value.trim();
+      var pass = el("resetPass").value;
+      if (!username || !code || pass.length < 4) {
+        showLoginError("Fyll inn brukernavn, engangskode og nytt passord (minst 4 tegn).");
+        return;
+      }
+      showLoginError("");
+      return fetch(serverUrl + "/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username, code: code, new_password: pass })
+      }).then(function (res) {
+        return res.json().then(function (data) {
+          if (!res.ok) { showLoginError(data.detail || "Kunne ikke bytte passord."); return; }
+          el("loginUser").value = username;
+          el("loginPass").value = pass;
+          el("resetCode").value = "";
+          el("resetPass").value = "";
+          toggleAuth("login");
+          showLoginError("Passordet er endret - trykk Logg inn.", true);
+        });
+      }).catch(function (e) {
+        showLoginError("Får ikke kontakt med serveren: " + e.message);
+      });
+    }
+
+    function saveServerUrl() {
+      var url = el("loginServerUrl").value.trim().replace(/\/+$/, "");
+      if (!url || url.indexOf("http") !== 0) {
+        showLoginError("Skriv en gyldig server-URL, f.eks. http://100.115.248.101:8000");
+        return;
+      }
+      serverUrl = url;
+      storageSet("serverUrl", serverUrl);
+      el("loginServerInfo").textContent = "Server: " + serverUrl;
+      showLoginError("Tester " + serverUrl + " ...", true);
+      checkStatus().then(function (online) {
+        if (online) showLoginError("Kontakt OK med " + serverUrl + " - logg inn nå.", true);
+        else showLoginError("Ingen kontakt med " + serverUrl + ". Sjekk at Tailscale er på og at serveren kjører.");
+      });
+    }
+
+    function useApiToken() {
+      var url = el("loginServerUrl").value.trim().replace(/\/+$/, "");
+      var token = el("loginApiToken").value.trim();
+      if (!token) { showLoginError("Lim inn API-token først."); return; }
+      serverUrl = url || serverUrl;
+      apiToken = token;
+      jwt = "";
+      currentUser = null;
+      storageSet("serverUrl", serverUrl);
+      storageSet("apiToken", apiToken);
+      storageRemove("jwt");
+      storageRemove("user");
+      showApp();
+    }
+
+    function logout() {
+      jwt = "";
+      currentUser = null;
+      storageRemove("jwt");
+      storageRemove("user");
+      showLogin("");
+    }
+
+    function boot() {
+      if (!jwt) {
+        showLogin("");
+        return;
+      }
+      return fetch(serverUrl + "/auth/me", { headers: { "Authorization": "Bearer " + jwt } })
+        .then(function (res) {
+          if (!res.ok) throw new Error("ugyldig sesjon");
+          return res.json().then(function (me) {
+            currentUser = { id: me.id, username: me.username, role: me.role };
+            storageSet("user", JSON.stringify(currentUser));
+            showApp();
+          });
+        })
+        .catch(function () {
+          jwt = "";
+          storageRemove("jwt");
+          showLogin("");
+        });
+    }
+
+    // ---------- Faner og valg ----------
+    function switchTab(tabId, node) {
+      document.querySelectorAll(".tab-content").forEach(function (t) { t.classList.remove("active"); });
+      document.querySelectorAll(".nav-item").forEach(function (n) { n.classList.remove("active"); });
+      el("tab-" + tabId).classList.add("active");
+      node.classList.add("active");
+    }
+
+    function setAgent(agent, node) {
+      currentAgent = agent;
+      document.querySelectorAll("#tab-chat .agent-chip").forEach(function (c) { c.classList.remove("active"); });
+      node.classList.add("active");
+    }
+
+    function setAgentPrimary(agent, node) {
+      agentPrimary = agent;
+      document.querySelectorAll("#tab-agent .agent-chip").forEach(function (c) { c.classList.remove("active"); });
+      node.classList.add("active");
+    }
+
+    function setMode(mode, node) {
+      chatMode = mode;
+      document.querySelectorAll(".mode-bar .mode-btn").forEach(function (b) { b.classList.remove("active"); });
+      node.classList.add("active");
+      el("chatProject").classList.toggle("hidden", mode !== "execute");
+    }
+
+    // ---------- Status og statistikk ----------
+    function startStats() {
+      stopStats();
+      checkStatus();
+      fetchStats();
+      statsInterval = setInterval(function () { fetchStats(); checkStatus(); }, 3000);
+    }
+
+    function stopStats() {
+      if (statsInterval) { clearInterval(statsInterval); statsInterval = null; }
+    }
+
+    function checkStatus() {
+      var dot = el("statusDot");
+      var text = el("statusText");
+      return apiFetch("/health").then(function (res) {
+        if (!res.ok) return false;
+        return res.json().then(function (data) {
+          dot.classList.add("online");
+          text.textContent = "Online";
+          el("geminiStatus").textContent = data.gemini_key_configured ? "Aktiv" : "Mangler nøkkel";
+          el("geminiStatus").style.color = data.gemini_key_configured ? "var(--accent)" : "var(--accent-warn)";
+          el("deepseekStatus").textContent = data.deepseek_key_configured ? "Aktiv" : "Mangler nøkkel";
+          el("deepseekStatus").style.color = data.deepseek_key_configured ? "var(--accent)" : "var(--accent-warn)";
+          el("techaiStatus").textContent = data.techai_key_configured ? "Aktiv" : "Mangler nøkkel";
+          el("techaiStatus").style.color = data.techai_key_configured ? "var(--accent)" : "var(--accent-warn)";
+          el("shellStatus").textContent = data.agent_shell_enabled ? "Aktiv" : "Avslått";
+          return true;
+        });
+      }).catch(function () {
+        return false;
+      }).then(function (online) {
+        if (!online) {
+          dot.classList.remove("online");
+          text.textContent = "Frakoblet";
+        }
+        return online;
+      });
+    }
+
+    function fetchStats() {
+      return apiFetch("/stats").then(function (res) {
+        if (!res.ok) return;
+        return res.json().then(function (stats) {
+          var cpu = Math.round(stats.cpu_percent || 0);
+          var ram = Math.round(stats.ram_percent || 0);
+          var disk = Math.round(stats.disk_percent || 0);
+          var temp = Math.round(stats.temp_c || 0);
+
+          el("cpuVal").textContent = cpu + "%";
+          el("cpuBar").style.width = cpu + "%";
+          el("ramVal").textContent = ram + "%";
+          el("ramBar").style.width = ram + "%";
+          el("diskVal").textContent = disk + "%";
+          el("diskBar").style.width = disk + "%";
+          el("tempVal").textContent = (temp > 0 ? temp : "--") + "°C";
+          el("tempBar").style.width = Math.min(100, (temp / 80) * 100) + "%";
+
+          var gpu = stats.gpu || null;
+          if (gpu && gpu.available) {
+            var g = Math.round(gpu.util_percent || 0);
+            el("gpuVal").textContent = g + "%";
+            el("gpuBar").style.width = g + "%";
+            el("gpuName").textContent = gpu.name || "GPU";
+            el("gpuMem").textContent = Math.round(gpu.mem_used_mb || 0) + " / " + Math.round(gpu.mem_total_mb || 0) + " MB";
+            el("gpuTemp").textContent = gpu.temp_c ? Math.round(gpu.temp_c) + "°C" : "--";
+          } else {
+            el("gpuVal").textContent = "--";
+            el("gpuBar").style.width = "0%";
+            el("gpuName").textContent = "GPU: ikke tilgjengelig";
+            el("gpuMem").textContent = "--";
+            el("gpuTemp").textContent = "--";
+          }
+        });
+      }).catch(function () { /* stille feil på stats */ });
+    }
+
+    // ---------- Chat ----------
     function appendMessage(text, sender) {
-      const container = document.getElementById("chatMessages");
-      const div = document.createElement("div");
-      div.className = `message ${sender}`;
+      var container = el("chatMessages");
+      var div = document.createElement("div");
+      div.className = "message " + sender;
       div.textContent = text;
       container.appendChild(div);
       container.scrollTop = container.scrollHeight;
       return div;
     }
 
-    async function runAgent() {
-      const goal = document.getElementById("agentGoal").value.trim();
-      const term = document.getElementById("terminalOutput");
-      if (!goal) return alert("Vennligst oppgi et mål");
+    function sendMessage() {
+      var input = el("chatInput");
+      var msg = input.value.trim();
+      if (!msg) return;
+      appendMessage(msg, "user");
+      input.value = "";
 
-      term.textContent = `[Agent startet]\nMål: ${goal}\nJobber kontinuerlig på serveren til oppgaven er fullført...\n`;
-
-      let renderedSteps = 0;
-      let pollTimer = setInterval(async () => {
-        try {
-          const stRes = await apiFetch("/chat/agent/status");
-          if (!stRes.ok) return;
-          const st = await stRes.json();
-          if (st.steps && st.steps.length > renderedSteps) {
-            for (let i = renderedSteps; i < st.steps.length; i++) {
-              const s = st.steps[i];
-              term.textContent += `\n[Steg ${s.step}] Tanke: ${s.thought}\n$ ${s.command}\n${s.stdout || ''}${s.stderr || ''}\n`;
-            }
-            renderedSteps = st.steps.length;
-            term.scrollTop = term.scrollHeight;
-          }
-        } catch (_) {}
-      }, 2000);
-
-      try {
-        let currentGoal = goal;
-        let currentProject = "";
-        let round = 1;
-        let finalData = null;
-
-        while (round <= 3) {
-          const res = await apiFetch("/chat/agent", {
-            method: "POST",
-            body: JSON.stringify({
-              goal: currentGoal,
-              agent: "gemini",
-              max_steps: 30,
-              project: currentProject
-            })
-          });
-          const data = await res.json();
-          finalData = data;
-          if (data.project) currentProject = data.project;
-
-          if (data.steps && data.steps.length > renderedSteps) {
-            for (let i = renderedSteps; i < data.steps.length; i++) {
-              const s = data.steps[i];
-              term.textContent += `\n[Steg ${s.step}] Tanke: ${s.thought}\n$ ${s.command}\n${s.stdout || ''}${s.stderr || ''}\n`;
-            }
-          }
-          if (data.done !== false) break;
-
-          round++;
-          renderedSteps = 0;
-          term.textContent += `\n[Fortsetter automatisk (runde ${round}) for å fullføre hele oppgaven...]\n`;
-          currentGoal = `Fortsett og fullfør oppgaven i prosjektet '${currentProject}': ${goal}`;
-        }
-
-        term.textContent += `\n[Ferdig] Svar: ${(finalData && finalData.answer) || 'Oppgaven er fullført!'}`;
-        term.scrollTop = term.scrollHeight;
-      } catch (e) {
-        term.textContent += `\n[Nettverksavbrudd fra mobil - sjekker om serveren jobber videre i bakgrunnen...]: ${e.message}`;
-      } finally {
-        clearInterval(pollTimer);
+      if (chatMode === "execute") {
+        startAgent(msg, currentAgent === "collaborate" ? "gemini" : currentAgent, el("chatProject").value.trim());
+        return;
       }
+
+      var endpoint = "/chat/gemini";
+      if (currentAgent === "deepseek") endpoint = "/chat/deepseek";
+      else if (currentAgent === "techai") endpoint = "/chat/techai";
+      else if (currentAgent === "collaborate") endpoint = "/chat/collaborate";
+
+      var body = { message: msg };
+      if (currentAgent === "collaborate") body.primary = "gemini";
+      if (chatMode === "plan") {
+        body.message = "Lag en kort, konkret plan med nummererte steg for hvordan dette bør utføres. Ikke utfør noe ennå, ikke skriv filer.\n\nOppgave: " + msg;
+      }
+
+      var botMsg = appendMessage(chatMode === "plan" ? "Lager plan..." : "Tenker...", "bot");
+      return apiFetch(endpoint, { method: "POST", body: JSON.stringify(body) })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (currentAgent === "collaborate" && chatMode !== "plan") {
+            var prim = (data.primary && data.primary.reply) || "";
+            var rev = (data.review && data.review.reply) || "";
+            botMsg.innerHTML = "<b>Gemini:</b> " + escapeHtml(prim) + "<br><br><small><b>Kontroll (" +
+              escapeHtml((data.review && data.review.verdict) || "") + "):</b><br>" + escapeHtml(rev) + "</small>";
+          } else {
+            botMsg.textContent = data.reply || data.detail || "Ingen respons";
+          }
+        })
+        .catch(function (e) {
+          botMsg.textContent = "Feil: " + e.message;
+        })
+        .then(function () {
+          el("chatMessages").scrollTop = el("chatMessages").scrollHeight;
+        });
     }
 
-    // Auto init
-    checkStatus();
-    fetchStats();
-    statsInterval = setInterval(() => {
-      fetchStats();
+    // ---------- Agent (skrivetilgang) ----------
+    function setAgentState(text) {
+      el("agentState").textContent = text;
+    }
+
+    function renderAgentSteps(steps) {
+      var box = el("agentSteps");
+      if (!steps || !steps.length) {
+        box.innerHTML = '<div class="step">Ingen steg ennå.</div>';
+        return;
+      }
+      box.innerHTML = steps.map(function (s) {
+        var cls = s.ok === false ? "step fail" : "step ok";
+        var html = '<div class="' + cls + '"><b>Steg ' + escapeHtml(s.step) + " · " + escapeHtml(s.action || "") + "</b>";
+        if (s.thought) html += "\n" + escapeHtml(s.thought);
+        if (s.command) html += "\n$ " + escapeHtml(s.command);
+        var out = s.stdout || s.stderr || s.result || "";
+        if (out) html += "\n" + escapeHtml(String(out).slice(0, 700));
+        return html + "</div>";
+      }).join("");
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function startAgent(goal, primary, project) {
+      var inChat = el("tab-chat").classList.contains("active");
+      var target = inChat ? appendMessage("Agenten planlegger...", "bot") : null;
+      setAgentState("starter...");
+      renderAgentSteps([]);
+      if (agentPoll) clearInterval(agentPoll);
+      agentPoll = setInterval(function () { pollAgent(target); }, 2500);
+
+      apiFetch("/chat/agent", {
+        method: "POST",
+        body: JSON.stringify({
+          goal: goal,
+          primary: primary || "gemini",
+          project: project || "",
+          max_steps: 20
+        })
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (agentPoll) { clearInterval(agentPoll); agentPoll = null; }
+          setAgentState(data.done ? "ferdig" : "avsluttet");
+          renderAgentSteps(data.steps || []);
+          var text = data.answer || data.summary || "Ferdig.";
+          if (target) {
+            target.textContent = text;
+            el("chatMessages").scrollTop = el("chatMessages").scrollHeight;
+          }
+        })
+        .catch(function (e) {
+          if (agentPoll) { clearInterval(agentPoll); agentPoll = null; }
+          setAgentState("feil");
+          if (target) target.textContent = "Agentfeil: " + e.message;
+        });
+    }
+
+    function pollAgent(target) {
+      return apiFetch("/chat/agent/status")
+        .then(function (res) { return res.json(); })
+        .then(function (st) {
+          renderAgentSteps(st.steps || []);
+          if (st.running) {
+            setAgentState("steg " + (st.current_step || 0) + "/" + (st.max_steps || "?") + " · " + (st.primary || ""));
+            if (target) {
+              var last = (st.steps || []).slice(-1)[0];
+              target.textContent = last
+                ? "Steg " + last.step + ": " + (last.thought || last.action || "jobber...")
+                : "Agenten jobber...";
+              el("chatMessages").scrollTop = el("chatMessages").scrollHeight;
+            }
+          } else {
+            setAgentState(st.done ? "ferdig" : "inaktiv");
+          }
+        })
+        .catch(function () { /* ignorer poll-feil */ });
+    }
+
+    function runAgent() {
+      var goal = el("agentGoal").value.trim();
+      if (!goal) { alert("Vennligst oppgi et mål"); return; }
+      startAgent(goal, agentPrimary, el("agentProject").value.trim());
+    }
+
+    function sendAgentMessage() {
+      var input = el("agentMessage");
+      var text = input.value.trim();
+      if (!text) return;
+      input.value = "";
+      return apiFetch("/chat/agent/message", {
+        method: "POST",
+        body: JSON.stringify({ message: text })
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          setAgentState(data.running ? "melding sendt (" + (data.queued || 1) + " i kø)" : "agenten kjører ikke");
+        })
+        .catch(function () {
+          setAgentState("feil ved sending");
+        });
+    }
+
+    // ---------- Terminal ----------
+    function quickCmd(cmd) {
+      el("termCommand").value = cmd;
+      runTerminal();
+    }
+
+    function clearTerminal() {
+      el("terminalOutput").textContent = "Klar.";
+    }
+
+    function termHistoryMove(dir) {
+      if (!termHistory.length) return;
+      if (termIndex === -1) termIndex = termHistory.length;
+      termIndex = Math.max(0, Math.min(termHistory.length - 1, termIndex + dir));
+      el("termCommand").value = termHistory[termIndex] || "";
+    }
+
+    function runTerminal() {
+      var input = el("termCommand");
+      var cmd = input.value.trim();
+      if (!cmd) return;
+      var out = el("terminalOutput");
+      termHistory.push(cmd);
+      termIndex = -1;
+      out.textContent += "\n$ " + cmd + "\n";
+      input.value = "";
+      out.scrollTop = out.scrollHeight;
+      return apiFetch("/shell", {
+        method: "POST",
+        body: JSON.stringify({ command: cmd, cwd: el("termCwd").value.trim(), timeout: 180 })
+      }).then(function (res) {
+        return res.json().then(function (data) {
+          if (!res.ok) {
+            out.textContent += "[HTTP " + res.status + "] " + (data.detail || "feil") + "\n";
+          } else {
+            if (data.stdout) out.textContent += data.stdout + "\n";
+            if (data.stderr) out.textContent += data.stderr + "\n";
+            out.textContent += "[exit " + data.exit_code + (data.timed_out ? ", timeout" : "") + "] " +
+              (data.duration_ms || 0) + " ms\n";
+          }
+        });
+      }).catch(function (e) {
+        out.textContent += "[feil] " + e.message + "\n";
+      }).then(function () {
+        out.scrollTop = out.scrollHeight;
+      });
+    }
+
+    // ---------- Innstillinger ----------
+    function saveSettings() {
+      serverUrl = el("serverUrlInput").value.trim().replace(/\/+$/, "");
+      apiToken = el("apiTokenInput").value.trim();
+      storageSet("serverUrl", serverUrl);
+      storageSet("apiToken", apiToken);
       checkStatus();
-    }, 3000);
+      alert("Innstillinger lagret!");
+    }
+
+    // ---------- Oppstart ----------
+    var termInput = el("termCommand");
+    if (termInput) {
+      termInput.addEventListener("keydown", function (ev) {
+        if (ev.key === "ArrowUp") { ev.preventDefault(); termHistoryMove(-1); }
+        if (ev.key === "ArrowDown") { ev.preventDefault(); termHistoryMove(1); }
+      });
+    }
+    boot();
   </script>
 </body>
 </html>
